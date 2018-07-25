@@ -64,4 +64,17 @@ public class PostController {
 
         return new ResponseEntity<>(postRepository.save(postFromDB), HttpStatus.OK);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deletePost(@PathVariable long id) {
+        Optional<Post> postToDelete = postRepository.findById(id);
+
+        if (!postToDelete.isPresent()) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
+
+        postRepository.delete(postToDelete.get());
+
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
+    }
 }

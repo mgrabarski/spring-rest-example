@@ -191,4 +191,39 @@ public class PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(updatedPost)));
     }
+
+    @Test
+    public void shouldSuccessDeletePost() throws Exception {
+        // given
+        Long id = 5L;
+        Post postToDelete = new Post(id, "title", "message");
+
+        when(postRepository.findById(id)).thenReturn(Optional.of(postToDelete));
+
+        // when
+        ResultActions result = mockMvc
+                .perform(delete("/posts/" + id)
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void shouldReturn404WhenInDatabaseAreNoPostWithTypedId() throws Exception {
+        // given
+        Long id = 5L;
+
+        when(postRepository.findById(id)).thenReturn(Optional.empty());
+
+        // when
+        ResultActions result = mockMvc
+                .perform(delete("/posts/" + id)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andDo(print())
+                .andExpect(status().isNotFound());
+    }
 }
