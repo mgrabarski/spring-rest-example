@@ -63,7 +63,7 @@ public class PostControllerTest {
     }
 
     @Test
-    public void shouldReturnPostWithTypedId() throws Exception {
+    public void shouldReturnAllPosts() throws Exception {
         // given
         Post post1 = new Post(1, "title1", "message1");
         Post post2 = new Post(2, "title2", "message2");
