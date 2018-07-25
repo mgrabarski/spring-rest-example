@@ -1,6 +1,5 @@
 package com.grabarski.mateusz.restexample.web;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grabarski.mateusz.restexample.posts.Post;
 import com.grabarski.mateusz.restexample.posts.PostController;
@@ -16,12 +15,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -81,5 +79,48 @@ public class PostControllerTest {
         result.andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(postsToReturn)));
+    }
+
+    @Test
+    public void shouldCreateNewPostWhenInDatabaseAreNotPostWithTypedId() throws Exception {
+        // given
+        Long id = 1L;
+        Post postToSave = new Post(id, "title", "message");
+
+        when(postRepository.findById(id)).thenReturn(Optional.empty());
+        when(postRepository.save(postToSave)).thenReturn(postToSave);
+
+        // when
+        ResultActions result = mockMvc
+                .perform(put("/posts/" + id)
+                        .content(objectMapper.writeValueAsString(postToSave))
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(postToSave)));
+    }
+
+    @Test
+    public void shouldUpdatePostInPUTEndpoint() throws Exception {
+        // given
+        Long id = 1L;
+        Post postToUpdate = new Post(id, "title", "message");
+        Post updatedPost = new Post(id, "title", "updated message");
+
+        when(postRepository.findById(id)).thenReturn(Optional.of(postToUpdate));
+        when(postRepository.save(postToUpdate)).thenReturn(updatedPost);
+
+        // when
+        ResultActions result = mockMvc
+                .perform(put("/posts/" + id)
+                        .content(objectMapper.writeValueAsString(postToUpdate))
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(updatedPost)));
     }
 }
