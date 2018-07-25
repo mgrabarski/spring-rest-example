@@ -14,9 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -116,6 +114,76 @@ public class PostControllerTest {
         ResultActions result = mockMvc
                 .perform(put("/posts/" + id)
                         .content(objectMapper.writeValueAsString(postToUpdate))
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(updatedPost)));
+    }
+
+    @Test
+    public void shouldPatchEndpointReturn404WhenUpdatingIdNotExistingInDatabase() throws Exception {
+        // given
+        Long id = 5L;
+
+        when(postRepository.findById(id)).thenReturn(Optional.empty());
+
+        // when
+        ResultActions result = mockMvc
+                .perform(patch("/posts/" + id)
+                        .content("{}")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void shouldSuccessUpdateMessageFieldsWhenInMessageBodyIsMessageKey() throws Exception {
+        // given
+        Long id = 5L;
+        String updateMessage = "message after update";
+        Map<String, String> values = new HashMap<>();
+        values.put("message", updateMessage);
+
+        Post postToUpdate = new Post(id, "title", "message");
+        Post updatedPost = new Post(id, "title", updateMessage);
+
+        when(postRepository.findById(id)).thenReturn(Optional.of(postToUpdate));
+        when(postRepository.save(postToUpdate)).thenReturn(updatedPost);
+
+        // when
+        ResultActions result = mockMvc
+                .perform(patch("/posts/" + id)
+                        .content(objectMapper.writeValueAsString(values))
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(updatedPost)));
+    }
+
+    @Test
+    public void shouldSuccessUpdateTitleFieldsWhenInMessageBodyIsTitleKey() throws Exception {
+        // given
+        Long id = 5L;
+        String updateTitle = "title after update";
+        Map<String, String> values = new HashMap<>();
+        values.put("title", updateTitle);
+
+        Post postToUpdate = new Post(id, "title", "message");
+        Post updatedPost = new Post(id, updateTitle, "message");
+
+        when(postRepository.findById(id)).thenReturn(Optional.of(postToUpdate));
+        when(postRepository.save(postToUpdate)).thenReturn(updatedPost);
+
+        // when
+        ResultActions result = mockMvc
+                .perform(patch("/posts/" + id)
+                        .content(objectMapper.writeValueAsString(values))
                         .contentType(MediaType.APPLICATION_JSON));
 
         // then

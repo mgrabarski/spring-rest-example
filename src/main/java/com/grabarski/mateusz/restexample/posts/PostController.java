@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -42,5 +43,25 @@ public class PostController {
         post.setTitle(postToAdd.getTitle());
         post.setMessage(postToAdd.getMessage());
         return new ResponseEntity<>(postRepository.save(post), HttpStatus.OK);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Post> patchPost(@PathVariable long id, @RequestBody Map<String, Object> fields) {
+        Optional<Post> postAsOptional = postRepository.findById(id);
+        if (!postAsOptional.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Post postFromDB = postAsOptional.get();
+
+        if (fields.containsKey("title")) {
+            postFromDB.setTitle(String.valueOf(fields.get("title")));
+        }
+
+        if (fields.containsKey("message")) {
+            postFromDB.setMessage(String.valueOf(fields.get("message")));
+        }
+
+        return new ResponseEntity<>(postRepository.save(postFromDB), HttpStatus.OK);
     }
 }
